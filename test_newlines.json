@@ -1,0 +1,4 @@
+{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}
+{"jsonrpc": "2.0", "method": "notifications/initialized", "params": {}}
+{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "prolog_load_facts", "arguments": {"facts": "animal(cat).\nhas_fur(cat)."}}}
+{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "prolog_query", "arguments": {"query": "animal(cat)."}}}

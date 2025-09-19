@@ -5,13 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 
-	"github.com/tomasz-sikora/logic-mcp/internal/mcp"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/tomasz-sikora/logic-mcp/internal/prolog"
+	"github.com/tomasz-sikora/logic-mcp/internal/tools"
 )
 
 func main() {
@@ -28,37 +26,34 @@ func main() {
 	}
 	defer prologEngine.Close()
 
-	// Initialize MCP server
-	mcpServer, err := mcp.NewServer(prologEngine)
-	if err != nil {
-		log.Fatalf("Failed to initialize MCP server: %v", err)
+	// Create MCP server with official SDK
+	server := mcp.NewServer(&mcp.Implementation{
+		Name:    "logic-mcp",
+		Version: "v1.0.0",
+	}, nil)
+
+	// Initialize logic tools
+	logicTools := tools.NewLogicTools(prologEngine)
+
+	// Add all tools to the server
+	if err := logicTools.RegisterTools(server); err != nil {
+		log.Fatalf("Failed to register tools: %v", err)
 	}
-
-	// Setup graceful shutdown
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-
-	go func() {
-		<-c
-		log.Println("Shutting down gracefully...")
-		cancel()
-	}()
 
 	// Start server based on mode
 	switch *mode {
 	case "stdio":
 		log.Println("Starting MCP server in STDIO mode...")
-		if err := mcpServer.ServeSTDIO(ctx); err != nil {
+		err := server.Run(context.Background(), &mcp.StdioTransport{})
+		if err != nil {
 			log.Fatalf("STDIO server error: %v", err)
 		}
+		log.Println("server.Run() completed without error")
 	case "http":
 		log.Printf("Starting MCP server in HTTP mode on port %s...", *port)
-		if err := mcpServer.ServeHTTP(ctx, *port); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("HTTP server error: %v", err)
-		}
+		// For HTTP mode, we'll need to implement a custom HTTP transport
+		// The official SDK primarily supports STDIO mode by default
+		log.Fatalf("HTTP mode not yet implemented with official SDK - use stdio mode")
 	default:
 		fmt.Fprintf(os.Stderr, "Invalid mode: %s. Use 'stdio' or 'http'\n", *mode)
 		os.Exit(1)
