@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "logic-mcp": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "logic-mcp:latest",
+        "-mode",
+        "stdio"
+      ],
+      "env": {}
+    }
+  }
+}

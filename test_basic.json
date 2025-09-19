@@ -1,0 +1,3 @@
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"capabilities":{}}}
+{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"prolog_load_facts","arguments":{"facts":"animal(cat).\nanimal(dog).\nhas_fur(cat).\nhas_fur(dog).\nmammal(X) :- animal(X), has_fur(X)."}}}
+{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"prolog_query","arguments":{"query":"mammal(cat)."}}}
