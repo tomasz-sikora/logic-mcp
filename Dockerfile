@@ -1,9 +1,9 @@
 # Logic MCP Server
-FROM golang:1.22-alpine AS builder
+# Use a recent Go version that matches go.mod requirement
+FROM golang:1.23-alpine AS builder
 
 # Install SWI-Prolog dependencies
 RUN apk add --no-cache \
-    swi-prolog \
     gcc \
     musl-dev \
     git
@@ -23,14 +23,14 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o logic-mcp ./cmd/server
 
 # Final stage
-FROM alpine:latest
+FROM swipl:latest
 
-# Install SWI-Prolog runtime
-RUN apk add --no-cache swi-prolog ca-certificates
+# Prolog is already installed. We can still install ca-certificates if needed.
+RUN apt-get update && apt-get install -y ca-certificates
 
-# Create non-root user
-RUN addgroup -g 1001 -S logicmcp && \
-    adduser -u 1001 -S logicmcp -G logicmcp
+# Create non-root user and group (Debian-compatible syntax)
+RUN addgroup --system --gid 1001 logicmcp && \
+    adduser --system --uid 1001 --ingroup logicmcp --disabled-password logicmcp
 
 WORKDIR /app
 
@@ -38,10 +38,11 @@ WORKDIR /app
 COPY --from=builder /app/logic-mcp .
 COPY --from=builder /app/examples ./examples
 
-# Set ownership
+# Set ownership for the non-root user
 RUN chown -R logicmcp:logicmcp /app
 
-# Switch to non-root user
+# Switch to non-root user (using Debian-based user)
+
 USER logicmcp
 
 # Expose port for HTTP mode
